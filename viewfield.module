@@ -123,7 +123,8 @@ function _viewfield_get_view_args($vargs, $entity_type, $entity) {
     }
 
     list($entity_id) = $entity->id();
-    $entity = entity_load($entity_type, $entity_id);
+    $entity_storage = \Drupal::entityTypeManager()->getStorage($entity_type);
+    $entity = $entity_storage->load($entity_id);
     $token_data = array($entity_type => $entity);
 
     $token = Drupal::token();

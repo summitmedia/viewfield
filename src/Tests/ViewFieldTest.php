@@ -7,15 +7,19 @@
 
 namespace Drupal\viewfield\Tests;
 
-use Drupal\Component\Utility\Unicode;
-use Drupal\simpletest\WebTestBase;
+use Drupal\Tests\BrowserTestBase;
 
 /**
  * Tests viewfield field.
  *
  * @group viewfield
  */
-class ViewFieldTest extends WebTestBase {
+class ViewFieldTest extends BrowserTestBase {
+
+  /**
+   * {@inheritdoc}
+  */
+  protected $defaultTheme = 'stark';
 
   /**
    * Modules to enable.
@@ -53,9 +57,10 @@ class ViewFieldTest extends WebTestBase {
    * Test field creation and attachment to an article.
    */
   function testFieldCreation() {
-    $field_name = Unicode::strtolower($this->randomMachineName());
+    $field_name = mb_strtolower($this->randomMachineName());
     // Create a field with settings to validate.
-    $this->fieldStorage = entity_create('field_storage_config', array(
+    $field_storage_config_storage = \Drupal::entityTypeManager()->getStorage('field_storage_config');
+    $this->fieldStorage = $field_storage_config_storage->create(array(
       'field_name' => $field_name,
       'entity_type' => 'node',
       'translatable' => FALSE,
@@ -63,19 +68,22 @@ class ViewFieldTest extends WebTestBase {
       'cardinality' => '1',
     ));
     $this->fieldStorage->save();
-    $this->field = entity_create('field_config', array(
+    $field_config_storage = \Drupal::entityTypeManager()->getStorage('field_config');
+    $this->field = $field_config_storage->create(array(
       'field_storage' => $this->fieldStorage,
       'bundle' => 'article',
       'title' => DRUPAL_DISABLED,
     ));
     $this->field->save();
-    entity_get_form_display('node', 'article', 'default')
+    \Drupal::service('entity_display.repository')
+      ->getFormDisplay('node', 'article', 'default')
       ->setComponent($field_name, array(
         'type' => 'viewfield_select',
         'settings' => array(),
       ))
       ->save();
-    entity_get_display('node', 'article', 'full')
+    \Drupal::service('entity_display.repository')
+      ->getViewDisplay('node', 'article', 'full')
       ->setComponent($field_name, array(
         'type' => 'viewfield_default',
       ))
@@ -119,7 +127,7 @@ class ViewFieldTest extends WebTestBase {
       $view_select_name => 'user_admin_people|default',
     );
     $this->drupalPostForm(NULL, $edit, t('Save and publish'));
-    
+
     // test that the view displays on the node
     $elements = $this->xpath("//div[contains(@class,:class) and contains(@class,:class1)]",
       array(':class' => 'view-user-admin-people',':class1' => 'view-display-id-default'));
