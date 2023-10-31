@@ -42,7 +42,10 @@ class ViewFieldTest extends BrowserTestBase {
    */
   protected $field;
 
-  protected function setUp() {
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
     parent::setUp();
 
     // Create Basic page and Article node types.
@@ -99,17 +102,16 @@ class ViewFieldTest extends BrowserTestBase {
     // Display article creation form.
     $this->drupalGet('node/add/article');
     $view_select_name = "{$field_name}[0][vname]";
-    $this->assertFieldByName($view_select_name, NULL,'Views select list is displayed.');
-    $this->assertFieldByName("{$field_name}[0][vargs]", '' ,
-      'Views arguments text field is displayed');
+    $this->assertSession()->fieldValueNotEquals($view_select_name, NULL);
+    $this->assertSession()->fieldValueNotEquals("{$field_name}[0][vargs]", '');
 
     $edit = array (
       "title[0][value]" => 'Test',
       $view_select_name => 'user_admin_people|default',
     );
     // create article with viewfield
-    $this->drupalPostForm(NULL, $edit, t('Save and publish'));
-    $this->assertText(t('Article Test has been created.'));
+    $this->submitForm($edit, t('Save and publish'));
+    $this->assertSession()->pageTextContains(t('Article Test has been created.'));
   }
 
   /**
@@ -126,7 +128,7 @@ class ViewFieldTest extends BrowserTestBase {
       "title[0][value]" => 'Test1',
       $view_select_name => 'user_admin_people|default',
     );
-    $this->drupalPostForm(NULL, $edit, t('Save and publish'));
+    $this->submitForm($edit, t('Save and publish'));
 
     // test that the view displays on the node
     $elements = $this->xpath("//div[contains(@class,:class) and contains(@class,:class1)]",
@@ -145,12 +147,12 @@ class ViewFieldTest extends BrowserTestBase {
   protected function assertDefaultViewRequired($field_name) {
     $this->drupalGet("admin/structure/types/manage/article/fields/node.article.{$field_name}");
     $default_chk_name = 'field[settings][force_default]';
-    $this->assertFieldByName($default_chk_name, NULL,'Default value checkbox displayed');
+    $this->assertSession()->fieldValueNotEquals($default_chk_name, NULL);
     $edit = array (
       $default_chk_name => TRUE,
     );
-    $this->drupalPostForm(NULL, $edit, t('Save settings'));
-    $this->assertText('Always use default value requires a default value');
+    $this->submitForm($edit, t('Save settings'));
+    $this->assertSession()->pageTextContains('Always use default value requires a default value');
   }
 
   /**
@@ -162,25 +164,25 @@ class ViewFieldTest extends BrowserTestBase {
   protected function assertDefaultViewSelected($field_name) {
     $this->drupalGet("admin/structure/types/manage/article/fields/node.article.{$field_name}");
     $default_view_select_name = "default_value_input[{$field_name}][0][vname]";
-    $this->assertFieldByName($default_view_select_name, NULL,'Default view select list is displayed');
+    $this->assertSession()->fieldValueNotEquals($default_view_select_name, NULL);
     $edit = array (
       $default_view_select_name => 'user_admin_people|default',
     );
-    $this->drupalPostForm(NULL, $edit, t('Save settings'));
-    $this->assertText("Saved {$field_name} configuration");
+    $this->submitForm($edit, t('Save settings'));
+    $this->assertSession()->pageTextContains("Saved {$field_name} configuration");
 
     // check that the view is preselected on the node form
     $this->drupalGet('node/add/article');
     $view_select_name = "{$field_name}[0][vname]";
 
-    $this->assertFieldByName($view_select_name, 'user_admin_people|default','Views select list is displayed with correct value');
+    $this->assertSession()->fieldValueNotEquals($view_select_name, 'user_admin_people|default');
 
     // return the default value to its original state
     $this->drupalGet("admin/structure/types/manage/article/fields/node.article.{$field_name}");
     $edit = array (
       $default_view_select_name => '0',
     );
-    $this->drupalPostForm(NULL, $edit, t('Save settings'));
+    $this->submitForm($edit, t('Save settings'));
 
   }
 }

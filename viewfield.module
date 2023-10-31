@@ -26,7 +26,7 @@ function viewfield_preprocess_viewfield_formatter_default(&$variables) {
   $element['#view']->setExposedInput($element['#exposed_settings']);
   $args = !empty($element['#view_arguments']) ? array($element['#view_arguments']) : array();
   $view_el = $element['#view']->preview($element['#view_display'], $args);
-  $output = render($view_el);
+  $output = \Drupal::service('renderer')->render($view_el);
   $variables['output'] = $output;
 }
 
@@ -34,11 +34,11 @@ function viewfield_preprocess_viewfield_formatter_default(&$variables) {
  * Implements hook_element_info().
  */
 function viewfield_element_info() {
-  $types['viewfield'] = array(
-    '#pre_render' => array('viewfield_pre_render'),
+  $types['viewfield'] = [
+    '#pre_render' => ['viewfield_pre_render'],
     '#theme' => 'viewfield_formatter_default',
-    '#post_render' => array('viewfield_post_render'),
-  );
+    '#post_render' => ['viewfield_post_render'],
+  ];
   return $types;
 }
 
